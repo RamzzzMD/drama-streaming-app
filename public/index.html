@@ -1,460 +1,333 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="id" class="dark">
-  <head>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="referrer" content="no-referrer">
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>DramaFlix - Nonton Drama China</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
-      tailwind.config = {
-        darkMode: "class",
-        theme: {
-          extend: {
-            colors: {
-              dark: "#0f172a",
-              primary: "#f43f5e",
-            },
-          },
-        },
-      };
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        dark: '#0f172a',
+                        primary: '#f43f5e',
+                    }
+                }
+            }
+        }
     </script>
     <!-- HLS.js for video streaming -->
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-      body {
-        font-family: "Inter", sans-serif;
-      }
-      .hide-scrollbar::-webkit-scrollbar {
-        display: none;
-      }
-      .hide-scrollbar {
-        -ms-overflow-style: none;
-        scrollbar-width: none;
-      }
-      .view-section {
-        display: none;
-      }
-      .view-section.active {
-        display: block;
-        animation: fadeIn 0.3s ease-in-out;
-      }
-      @keyframes fadeIn {
-        from {
-          opacity: 0;
-          transform: translateY(10px);
+        body { font-family: 'Inter', sans-serif; }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .view-section { display: none; }
+        .view-section.active { display: block; animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        /* Custom Toast Notification */
+        #toast-container {
+            position: fixed; top: 20px; right: 20px; z-index: 9999;
+            display: flex; flex-direction: column; gap: 10px;
         }
-        to {
-          opacity: 1;
-          transform: translateY(0);
+        .toast {
+            background-color: #334155; color: white; padding: 12px 20px;
+            border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            animation: slideIn 0.3s ease-in-out; display: flex; align-items: center; gap: 8px;
         }
-      }
-
-      /* Custom Toast Notification */
-      #toast-container {
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        z-index: 9999;
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-      }
-      .toast {
-        background-color: #334155;
-        color: white;
-        padding: 12px 20px;
-        border-radius: 8px;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        animation: slideIn 0.3s ease-in-out;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-      }
-      @keyframes slideIn {
-        from {
-          transform: translateX(100%);
-          opacity: 0;
-        }
-        to {
-          transform: translateX(0);
-          opacity: 1;
-        }
-      }
+        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
     </style>
-  </head>
-  <body class="bg-dark text-slate-200 min-h-screen">
+</head>
+<body class="bg-dark text-slate-200 min-h-screen">
+
     <!-- Toast Container -->
     <div id="toast-container"></div>
 
     <!-- Navbar -->
-    <nav
-      class="sticky top-0 z-50 bg-dark/90 backdrop-blur-md border-b border-slate-800"
-    >
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex items-center justify-between h-16">
-          <!-- Logo -->
-          <div
-            class="flex-shrink-0 flex items-center gap-2 cursor-pointer"
-            onclick="navigateTo('home')"
-          >
-            <i data-lucide="clapperboard" class="text-primary w-8 h-8"></i>
-            <span class="font-bold text-xl tracking-wide text-white"
-              >Drama<span class="text-primary">Flix</span></span
-            >
-          </div>
-          <!-- Search Bar -->
-          <div class="flex-1 flex justify-end">
-            <form id="search-form" class="w-full max-w-md relative">
-              <input
-                type="text"
-                id="search-input"
-                placeholder="Cari drama, judul, aktor..."
-                class="w-full bg-slate-800 border border-slate-700 rounded-full py-2 pl-4 pr-10 text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary text-white placeholder-slate-400 transition-all"
-              />
-              <button
-                type="submit"
-                class="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-primary"
-              >
-                <i data-lucide="search" class="w-4 h-4"></i>
-              </button>
-            </form>
-          </div>
+    <nav class="sticky top-0 z-50 bg-dark/90 backdrop-blur-md border-b border-slate-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <!-- Logo -->
+                <div class="flex-shrink-0 flex items-center gap-2 cursor-pointer" onclick="navigateTo('home')">
+                    <i data-lucide="clapperboard" class="text-primary w-8 h-8"></i>
+                    <span class="font-bold text-xl tracking-wide text-white">Drama<span class="text-primary">Flix</span></span>
+                </div>
+                <!-- Search Bar -->
+                <div class="flex-1 flex justify-end">
+                    <form id="search-form" class="w-full max-w-md relative">
+                        <input type="text" id="search-input" placeholder="Cari drama, judul, aktor..." 
+                            class="w-full bg-slate-800 border border-slate-700 rounded-full py-2 pl-4 pr-10 text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary text-white placeholder-slate-400 transition-all">
+                        <button type="submit" class="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-primary">
+                            <i data-lucide="search" class="w-4 h-4"></i>
+                        </button>
+                    </form>
+                </div>
+            </div>
         </div>
-      </div>
     </nav>
 
     <!-- Main Content Area -->
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <!-- Loading Indicator -->
-      <div
-        id="loading-spinner"
-        class="hidden flex justify-center items-center py-20"
-      >
-        <i
-          data-lucide="loader-2"
-          class="w-10 h-10 animate-spin text-primary"
-        ></i>
-      </div>
-
-      <!-- 1. Home View -->
-      <section id="view-home" class="view-section active">
-        <h2 class="text-2xl font-bold mb-6 flex items-center gap-2 text-white">
-          <i data-lucide="trending-up" class="text-primary"></i> Sedang Trending
-        </h2>
-        <div
-          id="home-grid"
-          class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6"
-        >
-          <!-- Cards will be injected here -->
+        
+        <!-- Loading Indicator -->
+        <div id="loading-spinner" class="hidden flex justify-center items-center py-20">
+            <i data-lucide="loader-2" class="w-10 h-10 animate-spin text-primary"></i>
         </div>
-      </section>
 
-      <!-- 2. Search Results View -->
-      <section id="view-search" class="view-section">
-        <h2 class="text-2xl font-bold mb-6 text-white flex items-center gap-2">
-          <i data-lucide="search"></i> Hasil Pencarian:
-          <span id="search-query-text" class="text-primary"></span>
-        </h2>
-        <div
-          id="search-grid"
-          class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6"
-        >
-          <!-- Search cards injected here -->
-        </div>
-        <div id="search-empty" class="hidden text-center py-20 text-slate-400">
-          <i data-lucide="frown" class="w-16 h-16 mx-auto mb-4 opacity-50"></i>
-          <p>Tidak ada drama yang ditemukan.</p>
-        </div>
-      </section>
-
-      <!-- 3. Detail View -->
-      <section id="view-detail" class="view-section">
-        <button
-          onclick="navigateTo('home')"
-          class="mb-6 flex items-center gap-2 text-slate-400 hover:text-white transition-colors"
-        >
-          <i data-lucide="arrow-left" class="w-4 h-4"></i> Kembali
-        </button>
-
-        <div class="flex flex-col md:flex-row gap-8">
-          <!-- Poster -->
-          <div class="w-full md:w-1/3 lg:w-1/4 flex-shrink-0">
-            <img
-              id="detail-cover"
-              src=""
-              alt="Cover"
-              class="w-full rounded-xl shadow-lg shadow-black/50 aspect-[3/4] object-cover"
-            />
-          </div>
-
-          <!-- Info -->
-          <div class="flex-1">
-            <h1
-              id="detail-title"
-              class="text-3xl md:text-4xl font-bold text-white mb-2"
-            ></h1>
-            <div
-              class="flex flex-wrap items-center gap-4 text-sm text-slate-300 mb-6"
-            >
-              <span
-                id="detail-status"
-                class="bg-primary/20 text-primary px-3 py-1 rounded-full font-medium"
-              ></span>
-              <span class="flex items-center gap-1"
-                ><i data-lucide="film" class="w-4 h-4"></i>
-                <span id="detail-episodes"></span> Episode</span
-              >
+        <!-- 1. Home View -->
+        <section id="view-home" class="view-section active">
+            <h2 class="text-2xl font-bold mb-6 flex items-center gap-2 text-white">
+                <i data-lucide="trending-up" class="text-primary"></i> Sedang Trending
+            </h2>
+            <div id="home-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6">
+                <!-- Cards will be injected here -->
             </div>
+        </section>
 
-            <div id="detail-tags" class="flex flex-wrap gap-2 mb-6">
-              <!-- Tags injected here -->
+        <!-- 2. Search Results View -->
+        <section id="view-search" class="view-section">
+            <h2 class="text-2xl font-bold mb-6 text-white flex items-center gap-2">
+                <i data-lucide="search"></i> Hasil Pencarian: <span id="search-query-text" class="text-primary"></span>
+            </h2>
+            <div id="search-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6">
+                <!-- Search cards injected here -->
             </div>
-
-            <h3 class="text-lg font-semibold text-white mb-2">Sinopsis</h3>
-            <p
-              id="detail-intro"
-              class="text-slate-400 leading-relaxed mb-8"
-            ></p>
-
-            <!-- Episode List -->
-            <h3
-              class="text-xl font-bold text-white mb-4 flex items-center gap-2"
-            >
-              <i data-lucide="list-video"></i> Daftar Episode
-            </h3>
-            <div
-              class="bg-slate-800 rounded-xl p-4 max-h-96 overflow-y-auto hide-scrollbar"
-            >
-              <div
-                id="episode-list"
-                class="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-2"
-              >
-                <!-- Episode buttons injected here -->
-              </div>
+            <div id="search-empty" class="hidden text-center py-20 text-slate-400">
+                <i data-lucide="frown" class="w-16 h-16 mx-auto mb-4 opacity-50"></i>
+                <p>Tidak ada drama yang ditemukan.</p>
             </div>
-          </div>
-        </div>
-      </section>
+        </section>
+
+        <!-- 3. Detail View -->
+        <section id="view-detail" class="view-section">
+            <button onclick="navigateTo('home')" class="mb-6 flex items-center gap-2 text-slate-400 hover:text-white transition-colors">
+                <i data-lucide="arrow-left" class="w-4 h-4"></i> Kembali
+            </button>
+            
+            <div class="flex flex-col md:flex-row gap-8">
+                <!-- Poster -->
+                <div class="w-full md:w-1/3 lg:w-1/4 flex-shrink-0">
+                    <img id="detail-cover" src="" alt="Cover" class="w-full rounded-xl shadow-lg shadow-black/50 aspect-[3/4] object-cover bg-slate-800">
+                </div>
+                
+                <!-- Info -->
+                <div class="flex-1">
+                    <h1 id="detail-title" class="text-3xl md:text-4xl font-bold text-white mb-2"></h1>
+                    <div class="flex flex-wrap items-center gap-4 text-sm text-slate-300 mb-6">
+                        <span id="detail-status" class="bg-primary/20 text-primary px-3 py-1 rounded-full font-medium"></span>
+                        <span class="flex items-center gap-1"><i data-lucide="film" class="w-4 h-4"></i> <span id="detail-episodes"></span> Episode</span>
+                    </div>
+                    
+                    <div id="detail-tags" class="flex flex-wrap gap-2 mb-6">
+                        <!-- Tags injected here -->
+                    </div>
+                    
+                    <h3 class="text-lg font-semibold text-white mb-2">Sinopsis</h3>
+                    <p id="detail-intro" class="text-slate-400 leading-relaxed mb-8"></p>
+
+                    <!-- Episode List -->
+                    <h3 class="text-xl font-bold text-white mb-4 flex items-center gap-2">
+                        <i data-lucide="list-video"></i> Daftar Episode
+                    </h3>
+                    <div class="bg-slate-800 rounded-xl p-4 max-h-96 overflow-y-auto hide-scrollbar">
+                        <div id="episode-list" class="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-2">
+                            <!-- Episode buttons injected here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
     </main>
 
     <!-- Video Player Modal -->
-    <div
-      id="video-modal"
-      class="fixed inset-0 z-[100] bg-black/95 hidden flex-col items-center justify-center backdrop-blur-sm"
-    >
-      <div class="w-full max-w-5xl mx-auto p-4 flex flex-col h-full md:h-auto">
-        <div class="flex justify-between items-center mb-4 text-white w-full">
-          <h3 id="player-title" class="text-lg font-bold truncate pr-4">
-            Memutar Episode...
-          </h3>
-          <button
-            onclick="closePlayer()"
-            class="p-2 bg-slate-800 hover:bg-slate-700 rounded-full transition-colors flex-shrink-0"
-          >
-            <i data-lucide="x" class="w-5 h-5"></i>
-          </button>
-        </div>
+    <div id="video-modal" class="fixed inset-0 z-[100] bg-black/95 hidden flex-col items-center justify-center backdrop-blur-sm">
+        <div class="w-full max-w-5xl mx-auto p-4 flex flex-col h-full md:h-auto">
+            
+            <div class="flex justify-between items-center mb-4 text-white w-full">
+                <h3 id="player-title" class="text-lg font-bold truncate pr-4">Memutar Episode...</h3>
+                <button onclick="closePlayer()" class="p-2 bg-slate-800 hover:bg-slate-700 rounded-full transition-colors flex-shrink-0">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
 
-        <div
-          class="relative w-full aspect-video bg-black rounded-xl overflow-hidden shadow-2xl"
-        >
-          <!-- Player Element -->
-          <video
-            id="video-player"
-            class="w-full h-full"
-            controls
-            playsinline
-          ></video>
+            <div class="relative w-full aspect-video bg-black rounded-xl overflow-hidden shadow-2xl">
+                <!-- Player Element -->
+                <video id="video-player" class="w-full h-full" controls playsinline></video>
+                
+                <!-- Player Loading -->
+                <div id="player-loading" class="absolute inset-0 bg-black/80 flex items-center justify-center z-10">
+                    <i data-lucide="loader-2" class="w-10 h-10 animate-spin text-primary"></i>
+                </div>
+            </div>
 
-          <!-- Player Loading -->
-          <div
-            id="player-loading"
-            class="absolute inset-0 bg-black/80 flex items-center justify-center z-10"
-          >
-            <i
-              data-lucide="loader-2"
-              class="w-10 h-10 animate-spin text-primary"
-            ></i>
-          </div>
+            <!-- Quality Selector -->
+            <div id="quality-selector" class="mt-4 flex gap-2 flex-wrap justify-center hidden">
+                <span class="text-sm text-slate-400 self-center mr-2">Resolusi:</span>
+                <!-- Quality buttons injected here -->
+            </div>
         </div>
-
-        <!-- Quality Selector -->
-        <div
-          id="quality-selector"
-          class="mt-4 flex gap-2 flex-wrap justify-center hidden"
-        >
-          <span class="text-sm text-slate-400 self-center mr-2">Resolusi:</span>
-          <!-- Quality buttons injected here -->
-        </div>
-      </div>
     </div>
 
     <!-- Application Script -->
     <script>
-      // Init Icons
-      lucide.createIcons();
-
-      // State
-      const state = {
-        currentVideoHls: null,
-        currentVideoData: null,
-      };
-
-      // --- Custom Toast / Message Box ---
-      function showMessage(msg, type = "info") {
-        const container = document.getElementById("toast-container");
-        const toast = document.createElement("div");
-        toast.className = "toast";
-        const icon = type === "error" ? "alert-circle" : "info";
-        const color = type === "error" ? "text-red-400" : "text-blue-400";
-
-        toast.innerHTML = `<i data-lucide="${icon}" class="${color} w-5 h-5"></i> <span>${msg}</span>`;
-        container.appendChild(toast);
+        // Init Icons
         lucide.createIcons();
 
-        setTimeout(() => {
-          toast.style.opacity = "0";
-          toast.style.transform = "translateX(100%)";
-          setTimeout(() => toast.remove(), 300);
-        }, 3000);
-      }
+        // State
+        const state = {
+            currentVideoHls: null,
+            currentVideoData: null
+        };
 
-      // --- Navigation ---
-      function navigateTo(viewId) {
-        document
-          .querySelectorAll(".view-section")
-          .forEach((el) => el.classList.remove("active"));
-        document.getElementById(`view-${viewId}`).classList.add("active");
-        window.scrollTo({ top: 0, behavior: "smooth" });
-      }
+        // --- Custom Toast / Message Box ---
+        function showMessage(msg, type = 'info') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            const icon = type === 'error' ? 'alert-circle' : 'info';
+            const color = type === 'error' ? 'text-red-400' : 'text-blue-400';
+            
+            toast.innerHTML = `<i data-lucide="${icon}" class="${color} w-5 h-5"></i> <span>${msg}</span>`;
+            container.appendChild(toast);
+            lucide.createIcons();
 
-      function toggleLoading(show) {
-        const spinner = document.getElementById("loading-spinner");
-        if (show) {
-          spinner.classList.remove("hidden");
-          document
-            .querySelectorAll(".view-section")
-            .forEach((el) => el.classList.add("hidden"));
-        } else {
-          spinner.classList.add("hidden");
-          document
-            .querySelectorAll(".view-section")
-            .forEach((el) => el.classList.remove("hidden"));
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateX(100%)';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
         }
-      }
 
-      // --- API Calls & Renderers ---
-      const API_URL = "/api";
-
-      async function fetchHome() {
-        toggleLoading(true);
-        try {
-          const res = await fetch(`${API_URL}/home`);
-          const json = await res.json();
-          if (json.success) renderCards(json.data, "home-grid");
-          else showMessage(json.message, "error");
-        } catch (err) {
-          showMessage("Gagal mengambil data server", "error");
+        // --- Navigation ---
+        function navigateTo(viewId) {
+            document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+            document.getElementById(`view-${viewId}`).classList.add('active');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
-        toggleLoading(false);
-        navigateTo("home");
-      }
 
-      async function handleSearch(e) {
-        e.preventDefault();
-        const query = document.getElementById("search-input").value.trim();
-        if (!query) return;
-
-        document.getElementById("search-query-text").innerText = `"${query}"`;
-        toggleLoading(true);
-
-        try {
-          const res = await fetch(
-            `${API_URL}/search?q=${encodeURIComponent(query)}`,
-          );
-          const json = await res.json();
-
-          if (json.success) {
-            const grid = document.getElementById("search-grid");
-            const empty = document.getElementById("search-empty");
-
-            if (json.data.length === 0) {
-              grid.innerHTML = "";
-              empty.classList.remove("hidden");
+        function toggleLoading(show) {
+            const spinner = document.getElementById('loading-spinner');
+            if (show) {
+                spinner.classList.remove('hidden');
+                document.querySelectorAll('.view-section').forEach(el => el.classList.add('hidden'));
             } else {
-              empty.classList.add("hidden");
-              renderCards(json.data, "search-grid");
+                spinner.classList.add('hidden');
+                document.querySelectorAll('.view-section').forEach(el => el.classList.remove('hidden'));
             }
-            navigateTo("search");
-          }
-        } catch (err) {
-          showMessage("Gagal mencari drama", "error");
         }
-        toggleLoading(false);
-      }
 
-      async function openDetail(bookId) {
-        toggleLoading(true);
-        try {
-          const res = await fetch(`${API_URL}/detail/${bookId}`);
-          const json = await res.json();
-          if (json.success) {
-            renderDetail(json.data);
-            navigateTo("detail");
-          } else {
-            showMessage(json.message, "error");
-          }
-        } catch (err) {
-          showMessage("Gagal memuat detail drama", "error");
+        // --- API Calls & Renderers ---
+        const API_URL = '/api';
+
+        async function fetchHome() {
+            toggleLoading(true);
+            try {
+                const res = await fetch(`${API_URL}/home`);
+                const json = await res.json();
+                if (json.success) renderCards(json.data, 'home-grid');
+                else showMessage(json.message, 'error');
+            } catch (err) {
+                showMessage("Gagal mengambil data server", 'error');
+            }
+            toggleLoading(false);
+            navigateTo('home');
         }
-        toggleLoading(false);
-      }
 
-      async function playEpisode(videoId, episodeNum) {
-        const modal = document.getElementById("video-modal");
-        const playerTitle = document.getElementById("player-title");
-        const playerLoading = document.getElementById("player-loading");
+        async function handleSearch(e) {
+            e.preventDefault();
+            const query = document.getElementById('search-input').value.trim();
+            if (!query) return;
 
-        playerTitle.innerText = `Memuat Episode ${episodeNum}...`;
-        modal.classList.remove("hidden");
-        modal.classList.add("flex");
-        playerLoading.classList.remove("hidden");
-
-        try {
-          const res = await fetch(`${API_URL}/stream/${videoId}`);
-          const json = await res.json();
-
-          if (json.success && json.data.status) {
-            playerTitle.innerText = `Episode ${episodeNum}`;
-            state.currentVideoData = json.data;
-            initPlayer(json.data.url);
-            renderQualitySelectors(json.data.downloads);
-          } else {
-            closePlayer();
-            showMessage(
-              "Gagal memuat video (Link kedaluwarsa atau error)",
-              "error",
-            );
-          }
-        } catch (err) {
-          closePlayer();
-          showMessage("Terjadi kesalahan jaringan", "error");
+            document.getElementById('search-query-text').innerText = `"${query}"`;
+            toggleLoading(true);
+            
+            try {
+                const res = await fetch(`${API_URL}/search?q=${encodeURIComponent(query)}`);
+                const json = await res.json();
+                
+                if (json.success) {
+                    const grid = document.getElementById('search-grid');
+                    const empty = document.getElementById('search-empty');
+                    
+                    if (json.data.length === 0) {
+                        grid.innerHTML = '';
+                        empty.classList.remove('hidden');
+                    } else {
+                        empty.classList.add('hidden');
+                        renderCards(json.data, 'search-grid');
+                    }
+                    navigateTo('search');
+                }
+            } catch (err) {
+                showMessage("Gagal mencari drama", 'error');
+            }
+            toggleLoading(false);
         }
-      }
 
-      // --- Render Helpers ---
-      function renderCards(dataArray, containerId) {
-        const container = document.getElementById(containerId);
-        container.innerHTML = dataArray
-          .map(
-            (item) => `
+        async function openDetail(bookId) {
+            toggleLoading(true);
+            try {
+                const res = await fetch(`${API_URL}/detail/${bookId}`);
+                const json = await res.json();
+                if (json.success) {
+                    renderDetail(json.data);
+                    navigateTo('detail');
+                } else {
+                    showMessage(json.message, 'error');
+                }
+            } catch (err) {
+                showMessage("Gagal memuat detail drama", 'error');
+            }
+            toggleLoading(false);
+        }
+
+        async function playEpisode(videoId, episodeNum) {
+            const modal = document.getElementById('video-modal');
+            const playerTitle = document.getElementById('player-title');
+            const playerLoading = document.getElementById('player-loading');
+            
+            playerTitle.innerText = `Memuat Episode ${episodeNum}...`;
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            playerLoading.classList.remove('hidden');
+
+            try {
+                const res = await fetch(`${API_URL}/stream/${videoId}`);
+                const json = await res.json();
+                
+                if (json.success && json.data.status) {
+                    playerTitle.innerText = `Episode ${episodeNum}`;
+                    state.currentVideoData = json.data;
+                    initPlayer(json.data.url);
+                    renderQualitySelectors(json.data.downloads);
+                } else {
+                    closePlayer();
+                    showMessage("Gagal memuat video (Link kedaluwarsa atau error)", 'error');
+                }
+            } catch (err) {
+                closePlayer();
+                showMessage("Terjadi kesalahan jaringan", 'error');
+            }
+        }
+
+        // --- Render Helpers ---
+        function renderCards(dataArray, containerId) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = dataArray.map(item => {
+                // MENGGUNAKAN API PROXY UNTUK GAMBAR
+                const proxyImageUrl = `/api/image?url=${encodeURIComponent(item.cover)}`;
+                
+                return `
                 <div onclick="openDetail('${item.book_id}')" class="group cursor-pointer relative overflow-hidden rounded-xl bg-slate-800 transition-transform hover:-translate-y-1 hover:shadow-xl hover:shadow-primary/20">
                     <div class="aspect-[3/4] overflow-hidden relative">
-                        <img src="/api/image?url=${encodeURIComponent(item.cover)}" alt="${item.title}" onerror="this.src='https://via.placeholder.com/300x400?text=No+Image'" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
+                        <img src="${proxyImageUrl}" alt="${item.title}" onerror="this.src='https://via.placeholder.com/300x400?text=Image+Blocked'" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
                         <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent"></div>
                         <div class="absolute bottom-2 left-2 right-2">
                             <span class="bg-primary text-white text-xs font-bold px-2 py-1 rounded shadow-sm">${item.total_chapters} Eps</span>
@@ -462,167 +335,139 @@
                     </div>
                     <div class="p-3">
                         <h3 class="font-semibold text-sm md:text-base text-white line-clamp-2 group-hover:text-primary transition-colors">${item.title}</h3>
-                        ${item.tags && item.tags.length > 0 ? `<p class="text-xs text-slate-400 mt-1 truncate">${item.tags[0]}</p>` : ""}
+                        ${item.tags && item.tags.length > 0 ? `<p class="text-xs text-slate-400 mt-1 truncate">${item.tags[0]}</p>` : ''}
                     </div>
                 </div>
-            `,
-          )
-          .join("");
-      }
+                `;
+            }).join('');
+        }
 
-      function renderDetail(data) {
-        document.getElementById('detail-cover').src = `/api/image?url=${encodeURIComponent(data.cover)}`;
-        document.getElementById("detail-title").innerText = data.title;
-        document.getElementById("detail-status").innerText = data.status;
-        document.getElementById("detail-episodes").innerText =
-          data.total_episodes;
-        document.getElementById("detail-intro").innerText =
-          data.intro || "Tidak ada sinopsis tersedia.";
+        function renderDetail(data) {
+            // MENGGUNAKAN API PROXY UNTUK GAMBAR DETAIL
+            document.getElementById('detail-cover').src = `/api/image?url=${encodeURIComponent(data.cover)}`;
+            
+            document.getElementById('detail-title').innerText = data.title;
+            document.getElementById('detail-status').innerText = data.status;
+            document.getElementById('detail-episodes').innerText = data.total_episodes;
+            document.getElementById('detail-intro').innerText = data.intro || "Tidak ada sinopsis tersedia.";
+            
+            // Tags
+            const tagsContainer = document.getElementById('detail-tags');
+            tagsContainer.innerHTML = data.tags.map(tag => 
+                `<span class="bg-slate-700 text-slate-300 text-xs px-2 py-1 rounded">${tag}</span>`
+            ).join('');
 
-        // Tags
-        const tagsContainer = document.getElementById("detail-tags");
-        tagsContainer.innerHTML = data.tags
-          .map(
-            (tag) =>
-              `<span class="bg-slate-700 text-slate-300 text-xs px-2 py-1 rounded">${tag}</span>`,
-          )
-          .join("");
-
-        // Episodes
-        const epContainer = document.getElementById("episode-list");
-        epContainer.innerHTML = data.episodes
-          .map(
-            (ep) => `
+            // Episodes
+            const epContainer = document.getElementById('episode-list');
+            epContainer.innerHTML = data.episodes.map(ep => `
                 <button onclick="playEpisode('${ep.video_id}', ${ep.episode})" 
                     class="bg-slate-700 hover:bg-primary hover:text-white text-slate-300 font-medium py-2 rounded transition-colors text-sm">
                     ${ep.episode}
                 </button>
-            `,
-          )
-          .join("");
-      }
-
-      function renderQualitySelectors(downloads) {
-        const container = document.getElementById("quality-selector");
-        if (!downloads || downloads.length === 0) {
-          container.classList.add("hidden");
-          return;
+            `).join('');
         }
 
-        container.classList.remove("hidden");
-
-        let buttonsHtml = "";
-        downloads.forEach((d) => {
-          buttonsHtml += `
+        function renderQualitySelectors(downloads) {
+            const container = document.getElementById('quality-selector');
+            if (!downloads || downloads.length === 0) {
+                container.classList.add('hidden');
+                return;
+            }
+            
+            container.classList.remove('hidden');
+            
+            let buttonsHtml = '';
+            downloads.forEach(d => {
+                buttonsHtml += `
                     <button onclick="initPlayer('${d.url}')" class="px-3 py-1 bg-slate-800 hover:bg-slate-700 border border-slate-600 rounded text-xs text-white transition-colors">
                         ${d.quality}p
                     </button>
                 `;
-        });
-
-        // Add Master auto button if we have original HLS
-        if (state.currentVideoData && state.currentVideoData.url) {
-          buttonsHtml =
-            `
+            });
+            
+            if (state.currentVideoData && state.currentVideoData.url) {
+                 buttonsHtml = `
                     <button onclick="initPlayer('${state.currentVideoData.url}')" class="px-3 py-1 bg-primary hover:bg-rose-600 rounded text-xs text-white transition-colors font-bold shadow-lg">
                         Auto
                     </button>
                 ` + buttonsHtml;
+            }
+            
+            container.innerHTML = `<span class="text-sm text-slate-400 self-center mr-2">Resolusi:</span>` + buttonsHtml;
         }
 
-        // Note: Keeping it simple by removing previous siblings to avoid duplicate "Resolusi:" span
-        container.innerHTML =
-          `<span class="text-sm text-slate-400 self-center mr-2">Resolusi:</span>` +
-          buttonsHtml;
-      }
+        // --- Player Controls ---
+        function initPlayer(videoUrl) {
+            const videoElement = document.getElementById('video-player');
+            const playerLoading = document.getElementById('player-loading');
+            
+            if (state.currentVideoHls) {
+                state.currentVideoHls.destroy();
+                state.currentVideoHls = null;
+            }
 
-      // --- Player Controls ---
-      function initPlayer(videoUrl) {
-        const videoElement = document.getElementById("video-player");
-        const playerLoading = document.getElementById("player-loading");
+            playerLoading.classList.remove('hidden');
 
-        // Destroy previous HLS instance if exists
-        if (state.currentVideoHls) {
-          state.currentVideoHls.destroy();
-          state.currentVideoHls = null;
+            if (videoUrl.includes('.m3u8')) {
+                if (Hls.isSupported()) {
+                    const hls = new Hls({ maxMaxBufferLength: 30 });
+                    state.currentVideoHls = hls;
+                    hls.loadSource(videoUrl);
+                    hls.attachMedia(videoElement);
+                    hls.on(Hls.Events.MANIFEST_PARSED, function () {
+                        playerLoading.classList.add('hidden');
+                        videoElement.play().catch(e => console.log("Auto-play prevented"));
+                    });
+                    hls.on(Hls.Events.ERROR, function (event, data) {
+                        if (data.fatal) {
+                            playerLoading.classList.add('hidden');
+                            showMessage("Video Format Error. Silakan coba resolusi lain.", 'error');
+                        }
+                    });
+                } else if (videoElement.canPlayType('application/vnd.apple.mpegurl')) {
+                    videoElement.src = videoUrl;
+                    videoElement.addEventListener('loadedmetadata', () => {
+                        playerLoading.classList.add('hidden');
+                        videoElement.play();
+                    });
+                }
+            } else {
+                videoElement.src = videoUrl;
+                videoElement.addEventListener('loadeddata', () => {
+                    playerLoading.classList.add('hidden');
+                    videoElement.play();
+                });
+                videoElement.addEventListener('error', () => {
+                    playerLoading.classList.add('hidden');
+                    showMessage("Gagal memuat format video ini.", 'error');
+                });
+            }
         }
 
-        playerLoading.classList.remove("hidden");
-
-        if (videoUrl.includes(".m3u8")) {
-          if (Hls.isSupported()) {
-            const hls = new Hls({
-              maxMaxBufferLength: 30,
-            });
-            state.currentVideoHls = hls;
-            hls.loadSource(videoUrl);
-            hls.attachMedia(videoElement);
-            hls.on(Hls.Events.MANIFEST_PARSED, function () {
-              playerLoading.classList.add("hidden");
-              videoElement
-                .play()
-                .catch((e) => console.log("Auto-play prevented"));
-            });
-            hls.on(Hls.Events.ERROR, function (event, data) {
-              if (data.fatal) {
-                playerLoading.classList.add("hidden");
-                showMessage(
-                  "Video Format Error. Silakan coba resolusi lain.",
-                  "error",
-                );
-              }
-            });
-          } else if (
-            videoElement.canPlayType("application/vnd.apple.mpegurl")
-          ) {
-            // Safari native HLS support
-            videoElement.src = videoUrl;
-            videoElement.addEventListener("loadedmetadata", () => {
-              playerLoading.classList.add("hidden");
-              videoElement.play();
-            });
-          }
-        } else {
-          // Direct MP4
-          videoElement.src = videoUrl;
-          videoElement.addEventListener("loadeddata", () => {
-            playerLoading.classList.add("hidden");
-            videoElement.play();
-          });
-          videoElement.addEventListener("error", () => {
-            playerLoading.classList.add("hidden");
-            showMessage("Gagal memuat format video ini.", "error");
-          });
+        function closePlayer() {
+            const modal = document.getElementById('video-modal');
+            const videoElement = document.getElementById('video-player');
+            
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            
+            videoElement.pause();
+            videoElement.src = '';
+            videoElement.removeAttribute('src');
+            videoElement.load();
+            
+            if (state.currentVideoHls) {
+                state.currentVideoHls.destroy();
+                state.currentVideoHls = null;
+            }
         }
-      }
 
-      function closePlayer() {
-        const modal = document.getElementById("video-modal");
-        const videoElement = document.getElementById("video-player");
+        document.getElementById('search-form').addEventListener('submit', handleSearch);
 
-        modal.classList.add("hidden");
-        modal.classList.remove("flex");
+        window.addEventListener('DOMContentLoaded', () => {
+            fetchHome();
+        });
 
-        videoElement.pause();
-        videoElement.src = "";
-        videoElement.removeAttribute("src");
-        videoElement.load();
-
-        if (state.currentVideoHls) {
-          state.currentVideoHls.destroy();
-          state.currentVideoHls = null;
-        }
-      }
-
-      // --- Event Listeners ---
-      document
-        .getElementById("search-form")
-        .addEventListener("submit", handleSearch);
-
-      // Run on start
-      window.addEventListener("DOMContentLoaded", () => {
-        fetchHome();
-      });
     </script>
-  </body>
+</body>
 </html>
