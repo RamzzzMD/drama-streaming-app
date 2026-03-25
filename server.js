@@ -74,27 +74,39 @@ app.get('/api/stream/:videoId', async (req, res) => {
 
 // API Endpoint: Image Proxy (Bypass Hotlink Protection & CORS)
 app.get('/api/image', async (req, res) => {
-    try {
-        const imageUrl = req.query.url;
-        if (!imageUrl) {
-            return res.status(400).send('URL is required');
-        }
+    const imageUrl = req.query.url;
+    
+    if (!imageUrl) {
+        return res.status(400).send('URL is required');
+    }
 
+    try {
         const response = await axios.get(imageUrl, {
-            responseType: 'arraybuffer', // PERBAIKAN: Gunakan arraybuffer alih-alih stream untuk Vercel
+            responseType: 'arraybuffer', // Ambil sebagai data binary
             headers: {
                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                'Accept': 'image/webp,image/apng,image/*,*/*;q=0.8',
                 'Referer': 'https://api.tmtreader.com/'
-            }
+            },
+            timeout: 8000 // Batas waktu 8 detik agar Vercel tidak timeout
         });
 
-        // Set content-type sesuai dengan gambar aslinya dan tambahkan cache
-        res.set('Content-Type', response.headers['content-type']);
-        res.set('Cache-Control', 'public, max-age=86400'); // Cache 1 hari agar serverless tidak kerja keras
-        res.send(response.data); // PERBAIKAN: Gunakan res.send()
+        // Konversi ke NodeJS Buffer secara eksplisit (Penting untuk Vercel Serverless)
+        const imageBuffer = Buffer.from(response.data, 'binary');
+
+        res.set({
+            'Content-Type': response.headers['content-type'] || 'image/jpeg',
+            'Cache-Control': 'public, max-age=86400, s-maxage=86400',
+            'Content-Length': imageBuffer.length
+        });
+
+        // Gunakan res.end() untuk memastikan data binary dikirim utuh
+        res.end(imageBuffer); 
     } catch (error) {
         console.error('Proxy Image Error:', error.message);
-        res.status(404).send('Image not found or blocked');
+        // Fallback: Jika proxy gagal (misal diblokir server asal), 
+        // perintahkan browser client untuk mencoba load URL aslinya langsung.
+        res.redirect(imageUrl);
     }
 });
 
