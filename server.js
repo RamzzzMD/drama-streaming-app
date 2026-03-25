@@ -3,6 +3,7 @@ import cors from 'cors';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { melolo } from './scraper.js';
+import axios from 'axios'; // Tambahkan axios untuk proxy gambar
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -68,6 +69,32 @@ app.get('/api/stream/:videoId', async (req, res) => {
         res.status(200).json({ success: true, data });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+// API Endpoint: Image Proxy (Bypass Hotlink Protection & CORS)
+app.get('/api/image', async (req, res) => {
+    try {
+        const imageUrl = req.query.url;
+        if (!imageUrl) {
+            return res.status(400).send('URL is required');
+        }
+
+        const response = await axios.get(imageUrl, {
+            responseType: 'arraybuffer', // PERBAIKAN: Gunakan arraybuffer alih-alih stream untuk Vercel
+            headers: {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                'Referer': 'https://api.tmtreader.com/'
+            }
+        });
+
+        // Set content-type sesuai dengan gambar aslinya dan tambahkan cache
+        res.set('Content-Type', response.headers['content-type']);
+        res.set('Cache-Control', 'public, max-age=86400'); // Cache 1 hari agar serverless tidak kerja keras
+        res.send(response.data); // PERBAIKAN: Gunakan res.send()
+    } catch (error) {
+        console.error('Proxy Image Error:', error.message);
+        res.status(404).send('Image not found or blocked');
     }
 });
 
