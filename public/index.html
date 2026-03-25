@@ -453,7 +453,7 @@
             (item) => `
                 <div onclick="openDetail('${item.book_id}')" class="group cursor-pointer relative overflow-hidden rounded-xl bg-slate-800 transition-transform hover:-translate-y-1 hover:shadow-xl hover:shadow-primary/20">
                     <div class="aspect-[3/4] overflow-hidden relative">
-                        <img src="${item.cover}" alt="${item.title}" onerror="this.src='https://via.placeholder.com/300x400?text=No+Image'" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
+                        <img src="/api/image?url=${encodeURIComponent(item.cover)}" alt="${item.title}" onerror="this.src='https://via.placeholder.com/300x400?text=No+Image'" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
                         <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent"></div>
                         <div class="absolute bottom-2 left-2 right-2">
                             <span class="bg-primary text-white text-xs font-bold px-2 py-1 rounded shadow-sm">${item.total_chapters} Eps</span>
@@ -470,7 +470,7 @@
       }
 
       function renderDetail(data) {
-        document.getElementById("detail-cover").src = data.cover;
+        document.getElementById('detail-cover').src = `/api/image?url=${encodeURIComponent(data.cover)}`;
         document.getElementById("detail-title").innerText = data.title;
         document.getElementById("detail-status").innerText = data.status;
         document.getElementById("detail-episodes").innerText =
