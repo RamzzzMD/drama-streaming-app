@@ -74,10 +74,15 @@ app.get('/api/stream/:videoId', async (req, res) => {
 
 // API Endpoint: Image Proxy (Bypass Hotlink Protection & CORS)
 app.get('/api/image', async (req, res) => {
-    const imageUrl = req.query.url;
+    let imageUrl = req.query.url;
     
     if (!imageUrl) {
         return res.status(400).send('URL is required');
+    }
+
+    // Fix: Tambahkan protokol 'https:' jika URL dari API hanya dimulai dengan '//'
+    if (imageUrl.startsWith('//')) {
+        imageUrl = 'https:' + imageUrl;
     }
 
     try {
@@ -91,21 +96,16 @@ app.get('/api/image', async (req, res) => {
             timeout: 8000 // Batas waktu 8 detik agar Vercel tidak timeout
         });
 
-        // Konversi ke NodeJS Buffer secara eksplisit (Penting untuk Vercel Serverless)
-        const imageBuffer = Buffer.from(response.data, 'binary');
-
         res.set({
             'Content-Type': response.headers['content-type'] || 'image/jpeg',
-            'Cache-Control': 'public, max-age=86400, s-maxage=86400',
-            'Content-Length': imageBuffer.length
+            'Cache-Control': 'public, max-age=86400, s-maxage=86400'
         });
 
-        // Gunakan res.end() untuk memastikan data binary dikirim utuh
-        res.end(imageBuffer); 
+        // Fix: Langsung kirim response.data dengan res.send() 
+        // Axios otomatis menjadikan response.data sebagai Buffer jika responseType-nya arraybuffer
+        res.send(response.data); 
     } catch (error) {
         console.error('Proxy Image Error:', error.message);
-        // Fallback: Jika proxy gagal (misal diblokir server asal), 
-        // perintahkan browser client untuk mencoba load URL aslinya langsung.
         res.redirect(imageUrl);
     }
 });
